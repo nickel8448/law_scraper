@@ -84,7 +84,6 @@ func getAllURLs(startURL string) ([]string, error) {
 
 func generateActPDFMap(viewURLs []string) map[actDetails]string {
 	fmt.Println("Starting to load Acts data in memory")
-	counter := 0
 	count := len(viewURLs)
 	bar := pb.StartNew(count)
 	URL := "https://www.indiacode.nic.in"
@@ -145,10 +144,6 @@ func generateActPDFMap(viewURLs []string) map[actDetails]string {
 		c.Visit(url)
 		bar.Increment()
 		actPDFMap[currentAct] = pdfURL
-		if counter == 50 {
-			break
-		}
-		counter++
 	}
 	bar.Finish()
 	fmt.Println("Acts data loaded in memory")
