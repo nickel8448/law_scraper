@@ -84,6 +84,7 @@ func getAllURLs(startURL string) ([]string, error) {
 
 func generateActPDFMap(viewURLs []string) map[actDetails]string {
 	fmt.Println("Starting to load Acts data in memory")
+	counter := 0
 	count := len(viewURLs)
 	bar := pb.StartNew(count)
 	URL := "https://www.indiacode.nic.in"
@@ -144,6 +145,10 @@ func generateActPDFMap(viewURLs []string) map[actDetails]string {
 		c.Visit(url)
 		bar.Increment()
 		actPDFMap[currentAct] = pdfURL
+		if counter == 50 {
+			break
+		}
+		counter++
 	}
 	bar.Finish()
 	fmt.Println("Acts data loaded in memory")
@@ -213,7 +218,11 @@ func downloadPDFAndAddDataToCSV(actPDFMap map[actDetails]string) {
 }
 
 func main() {
-	viewURLs, err := getAllURLs("https://www.indiacode.nic.in/handle/123456789/1362/browse?type=shorttitle")
+	argsWithProg := os.Args
+	if len(argsWithProg) < 2 || len(argsWithProg) >= 3 {
+		log.Fatal("Arguments are not right. Please add the URL")
+	}
+	viewURLs, err := getAllURLs(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
