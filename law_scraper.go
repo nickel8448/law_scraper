@@ -134,7 +134,7 @@ func generateActPDFMap(viewURLs []string) map[actDetails]string {
 						} else if strings.Contains(d.Text(), "Last Updated") {
 							currentAct.lastUpdate = d.Next().Text()
 						} else if strings.Contains(d.Text(), "Location") {
-							currentAct.lastUpdate = d.Next().Text()
+							currentAct.location = d.Next().Text()
 						}
 					})
 				})
