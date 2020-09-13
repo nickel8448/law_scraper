@@ -23,6 +23,7 @@ type actDetails struct {
 	department      string
 	enforcementDate string
 	lastUpdate      string
+	location        string
 	actURL          string
 }
 
@@ -132,6 +133,8 @@ func generateActPDFMap(viewURLs []string) map[actDetails]string {
 							currentAct.enforcementDate = d.Next().Text()
 						} else if strings.Contains(d.Text(), "Last Updated") {
 							currentAct.lastUpdate = d.Next().Text()
+						} else if strings.Contains(d.Text(), "Location") {
+							currentAct.lastUpdate = d.Next().Text()
 						}
 					})
 				})
@@ -172,6 +175,7 @@ func downloadPDFAndAddDataToCSV(actPDFMap map[actDetails]string) {
 		"Department",
 		"Enforcement Date",
 		"Last Updated",
+		"Location",
 		"Act URL"}
 	writer.Write(csvHeader)
 	defer writer.Flush()
@@ -189,6 +193,7 @@ func downloadPDFAndAddDataToCSV(actPDFMap map[actDetails]string) {
 			actDetails.department,
 			actDetails.enforcementDate,
 			actDetails.lastUpdate,
+			actDetails.location,
 			actDetails.actURL)
 
 		c.OnResponse(func(r *colly.Response) {
