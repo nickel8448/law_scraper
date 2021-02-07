@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/cheggaaa/pb/v3"
@@ -29,9 +30,11 @@ type actDetails struct {
 
 // TODO: Deprecate the allURLs variables
 func getAllURLs(startURL string) ([]string, error) {
-	fmt.Println("Starting to visit the website")
+	log.Printf("Starting to visit the start url")
+	timeoutDuration, _ := time.ParseDuration("20s")
 	c := colly.NewCollector()
 	c.AllowURLRevisit = false
+	c.SetRequestTimeout(timeoutDuration)
 
 	URL := "https://www.indiacode.nic.in"
 	urlMap := make(map[string]bool)
@@ -43,12 +46,12 @@ func getAllURLs(startURL string) ([]string, error) {
 
 	allURLsQueue = append(allURLsQueue, startURL)
 	URLs = append(URLs, startURL)
-
 	for len(allURLsQueue) > 0 {
 		found := true
+		var url string
 		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 			if e.Text == "View..." {
-				url := URL + e.Attr("href")
+				url = URL + e.Attr("href")
 				_, urlInMap := viewURLMap[url]
 				if !urlInMap {
 					viewURLs = append(viewURLs, url)
@@ -76,19 +79,23 @@ func getAllURLs(startURL string) ([]string, error) {
 			return
 		})
 		c.Visit(allURLsQueue[0])
+		log.Printf("Added %s to queue", url)
 		allURLsQueue = allURLsQueue[1:]
 	}
-	fmt.Println("Loaded all URLs in memory")
+	log.Printf("Loaded all URLs in memory")
 	return viewURLs, nil
 }
 
 func generateActPDFMap(viewURLs []string) map[actDetails]string {
-	fmt.Println("Starting to load Acts data in memory")
+	log.Printf("Loading Acts data in memory\n")
 	count := len(viewURLs)
 	bar := pb.StartNew(count)
 	URL := "https://www.indiacode.nic.in"
+
+	timeoutDuration, _ := time.ParseDuration("20s")
 	c := colly.NewCollector()
 	c.AllowURLRevisit = false
+	c.SetRequestTimeout(timeoutDuration)
 
 	actPDFMap := make(map[actDetails]string)
 
@@ -125,9 +132,9 @@ func generateActPDFMap(viewURLs []string) map[actDetails]string {
 							currentAct.shortTitle = d.Next().Text()
 						} else if strings.Contains(d.Text(), "Long Title") {
 							currentAct.longTitle = d.Next().Text()
-						} else if strings.Contains(d.Text(), "Ministry") {
+						} else if strings.HasPrefix(d.Text(), "Ministry:") {
 							currentAct.ministry = d.Next().Text()
-						} else if strings.Contains(d.Text(), "Department") {
+						} else if strings.HasPrefix(d.Text(), "Department:") {
 							currentAct.department = d.Next().Text()
 						} else if strings.Contains(d.Text(), "Enforcement Date") {
 							currentAct.enforcementDate = d.Next().Text()
